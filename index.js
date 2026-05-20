@@ -28,7 +28,14 @@ async function run() {
     app.post("/list-pets",async(req,res)=>{
       const petData= req.body;
       const allPetData = await petsCollection.insertOne(petData)
+      
 res.send(allPetData)      
+     
+    })
+
+    app.get("/list-pets",async(req,res)=>{
+      const result = await petsCollection.find().toArray()
+      res.send(result)
     })
 
     await client.db("admin").command({ ping: 1 });
