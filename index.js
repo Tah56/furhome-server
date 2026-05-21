@@ -70,6 +70,14 @@ async function run() {
       res.json(result);
       console.log(result);
     });
+    app.get("/my-pet-requests/:OwnerEmail", async (req, res) => {
+      const { OwnerEmail } = req.params;
+      const result = await pestAdaptioncCollection
+        .find({ OwnerEmail: OwnerEmail })
+        .toArray();
+      res.json(result);
+      console.log(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
