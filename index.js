@@ -45,6 +45,21 @@ async function run() {
       const result = await petsCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
     });
+    app.patch("/list-pets/:id",async(req,res)=>{
+      const {id} = req.params
+      const data = req.body
+      const result = await petsCollection.updateOne({_id: new ObjectId(id)},
+      {$set: data}
+    )
+      res.send(result)
+    })
+    app.delete("/list-pets/:id",async(req,res)=>{
+      const {id} = req.params
+      
+      const result = await pestAdaptioncCollection.deleteOne({_id: new ObjectId(id)}
+    )
+      res.send(result)
+    })
 
     app.post("/list-pet", async (req, res) => {
       const petAdapt = req.body;
@@ -73,11 +88,18 @@ async function run() {
     app.get("/my-pet-requests/:OwnerEmail", async (req, res) => {
       const { OwnerEmail } = req.params;
       const result = await pestAdaptioncCollection
-        .find({ OwnerEmail: OwnerEmail })
-        .toArray();
+        .find({ OwnerEmail: OwnerEmail }).toArray()
+      
       res.json(result);
       console.log(result);
     });
+
+    // app.patch("/my-pet-requests/:Id",async(req,res)=>{
+    //   const {petId} = req.params
+    //   const data = req.body
+    //   const result = await petsCollection.updateOne({petId:petId},{$set:data})
+    //   res.send(result)
+    // })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
