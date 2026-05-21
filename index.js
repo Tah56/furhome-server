@@ -21,42 +21,46 @@ async function run() {
   try {
     await client.connect();
 
-    const db= client.db('furhome')
-    const petsCollection = db.collection('pets')
-    const pestAdaptioncCollection=db.collection('adaptions')
- 
+    const db = client.db("furhome");
+    const petsCollection = db.collection("pets");
+    const pestAdaptioncCollection = db.collection("adaptions");
 
-    app.post("/list-pets",async(req,res)=>{
-      const petData= req.body;
-      const allPetData = await petsCollection.insertOne(petData)
-      
-res.send(allPetData)      
-     
-    })
-    app.get('/listing/:userId',async(req,res)=>{
-      const {userId} = req.params
-      const result= await petsCollection.find({userId : userId}).toArray()
-      res.send(result)
-    })
-    app.get("/list-pets",async(req,res)=>{
-      const result = await petsCollection.find().toArray()
-      res.send(result)
-    })
-    app.get('/list-pets/:id',async(req,res)=>{
-      const {id}=req.params
-      const result = await petsCollection.findOne({_id: new ObjectId(id)})
-      res.json(result)
-    })
+    app.post("/list-pets", async (req, res) => {
+      const petData = req.body;
+      const allPetData = await petsCollection.insertOne(petData);
 
-    app.post('/list-pet',async(req,res)=>{
-      const petAdapt=req.body
-      const result = await pestAdaptioncCollection.insertOne(petAdapt)
-      res.json(result)
+      res.send(allPetData);
+    });
+    app.get("/listing/:userId", async (req, res) => {
+      const { userId } = req.params;
+      const result = await petsCollection.find({ userId: userId }).toArray();
+      res.send(result);
+    });
+    app.get("/list-pets", async (req, res) => {
+      const result = await petsCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/list-pets/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await petsCollection.findOne({ _id: new ObjectId(id) });
+      res.json(result);
+    });
+
+    app.post("/list-pet", async (req, res) => {
+      const petAdapt = req.body;
+      const alredyexist = await pestAdaptioncCollection.findOne({
+        petId: petAdapt.petId,
+        email: petAdapt.email,
+      });
+      if (alredyexist) {
+        return res.send({
+          message: "You already requsted this pet",
+        });
+      }
+      const result = await pestAdaptioncCollection.insertOne(petAdapt);
+      res.json(result);
       console.log(result);
-      
-    })
-
-    
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
