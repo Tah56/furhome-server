@@ -61,6 +61,15 @@ async function run() {
       res.json(result);
       console.log(result);
     });
+    app.get("/requsts", async (req, res) => {
+      const email = req.query.email;
+
+      const result = await pestAdaptioncCollection
+        .find({ email: email })
+        .toArray();
+      res.json(result);
+      console.log(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
