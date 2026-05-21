@@ -53,10 +53,20 @@ async function run() {
     )
       res.send(result)
     })
+    app.delete("/request/:petid",async(req,res)=>{
+      const {petid} = req.params
+      
+      const result = await pestAdaptioncCollection.deleteOne({petId: petid}
+    )
+    console.log(result);
+    
+      res.send(result)
+    })
     app.delete("/list-pets/:id",async(req,res)=>{
       const {id} = req.params
+     
       
-      const result = await pestAdaptioncCollection.deleteOne({_id: new ObjectId(id)}
+      const result = await petsCollection.deleteOne({_id: new ObjectId(id)}
     )
       res.send(result)
     })
