@@ -3,7 +3,7 @@ const dotenv = require("dotenv").config();
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = process.env.DB_URI;
 
 app.use(cors());
@@ -23,6 +23,7 @@ async function run() {
 
     const db= client.db('furhome')
     const petsCollection = db.collection('pets')
+    const pestAdaptioncCollection=db.collection('adaptions')
  
 
     app.post("/list-pets",async(req,res)=>{
@@ -32,11 +33,30 @@ async function run() {
 res.send(allPetData)      
      
     })
-
+    app.get('/listing/:userId',async(req,res)=>{
+      const {userId} = req.params
+      const result= await petsCollection.find({userId : userId}).toArray()
+      res.send(result)
+    })
     app.get("/list-pets",async(req,res)=>{
       const result = await petsCollection.find().toArray()
       res.send(result)
     })
+    app.get('/list-pets/:id',async(req,res)=>{
+      const {id}=req.params
+      const result = await petsCollection.findOne({_id: new ObjectId(id)})
+      res.json(result)
+    })
+
+    app.post('/list-pet',async(req,res)=>{
+      const petAdapt=req.body
+      const result = await pestAdaptioncCollection.insertOne(petAdapt)
+      res.json(result)
+      console.log(result);
+      
+    })
+
+    
 
     await client.db("admin").command({ ping: 1 });
     console.log(
