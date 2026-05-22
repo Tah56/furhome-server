@@ -37,7 +37,12 @@ async function run() {
       res.send(result);
     });
     app.get("/list-pets", async (req, res) => {
-      const result = await petsCollection.find().toArray();
+      const search = req.query.search || "";
+      console.log(search);
+
+      const result = await petsCollection
+        .find({ name: { $regex: search, $options: "i" } })
+        .toArray();
       res.send(result);
     });
     app.get("/list-pets/:id", async (req, res) => {
@@ -45,31 +50,29 @@ async function run() {
       const result = await petsCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
     });
-    app.patch("/list-pets/:id",async(req,res)=>{
-      const {id} = req.params
-      const data = req.body
-      const result = await petsCollection.updateOne({_id: new ObjectId(id)},
-      {$set: data}
-    )
-      res.send(result)
-    })
-    app.delete("/request/:petid",async(req,res)=>{
-      const {petid} = req.params
-      
-      const result = await pestAdaptioncCollection.deleteOne({petId: petid}
-    )
-    console.log(result);
-    
-      res.send(result)
-    })
-    app.delete("/list-pets/:id",async(req,res)=>{
-      const {id} = req.params
-     
-      
-      const result = await petsCollection.deleteOne({_id: new ObjectId(id)}
-    )
-      res.send(result)
-    })
+    app.patch("/list-pets/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      const result = await petsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: data },
+      );
+      res.send(result);
+    });
+    app.delete("/request/:petid", async (req, res) => {
+      const { petid } = req.params;
+
+      const result = await pestAdaptioncCollection.deleteOne({ petId: petid });
+      console.log(result);
+
+      res.send(result);
+    });
+    app.delete("/list-pets/:id", async (req, res) => {
+      const { id } = req.params;
+
+      const result = await petsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
 
     app.post("/list-pet", async (req, res) => {
       const petAdapt = req.body;
@@ -98,9 +101,25 @@ async function run() {
     app.get("/my-pet-requests/:OwnerEmail", async (req, res) => {
       const { OwnerEmail } = req.params;
       const result = await pestAdaptioncCollection
-        .find({ OwnerEmail: OwnerEmail }).toArray()
-      
+        .find({ OwnerEmail: OwnerEmail })
+        .toArray();
+
       res.json(result);
+      console.log(result);
+    });
+    app.patch("/my-pet-requests/:petId", async (req, res) => {
+      const { petId } = req.params;
+      const data = req.body;
+      const result = await pestAdaptioncCollection.updateOne(
+        { petId: petId },
+        { $set: { status: data.status } },
+      );
+      const results = await petsCollection.updateOne(
+        { _id: new ObjectId(petId) },
+        { $set: { status: data.status } },
+      );
+
+      res.json({ result, results });
       console.log(result);
     });
 
