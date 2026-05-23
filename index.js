@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 const port = process.env.PORT;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const uri = process.env.DB_URI;
 
 app.use(cors());
@@ -16,6 +17,33 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+const JWKS =  createRemoteJWKSet(
+  new URL(("http://localhost:3000/api/auth/jwks"))
+)
+
+const verifyToken = async (req, res, next) => {
+  const header = req?.headers.authorization;
+  if (!header) {
+    return res.status(401).json({message:"Unathorized"})
+  }
+
+  const token = header.split(" ")[1]
+  if (!token) {
+    return res.status(401).json({message:"Unathorized"})
+  }
+  console.log(header);
+try {
+  
+  const {payload} = await jwtVerify(token,JWKS)
+  console.log(payload);
+  next();
+} catch (error) {
+  return res.status(403).json({message:"forbidden"})
+}
+
+
+
+};
 
 async function run() {
   try {
@@ -25,7 +53,7 @@ async function run() {
     const petsCollection = db.collection("pets");
     const pestAdaptioncCollection = db.collection("adaptions");
 
-    app.post("/list-pets", async (req, res) => {
+    app.post("/list-pets", verifyToken, async (req, res) => {
       const petData = req.body;
       const allPetData = await petsCollection.insertOne(petData);
 
@@ -36,21 +64,26 @@ async function run() {
       const result = await petsCollection.find({ userId: userId }).toArray();
       res.send(result);
     });
-    app.get("/list-pets", async (req, res) => {
+    app.get("/all-pets", async (req, res) => {
       const search = req.query.search || "";
+      let query = {};
+      if (search) {
+        query.name = {
+          $regex: search,
+          $options: "i",
+        };
+      }
       console.log(search);
 
-      const result = await petsCollection
-        .find({ name: { $regex: search, $options: "i" } })
-        .toArray();
+      const result = await petsCollection.find(query).toArray();
       res.send(result);
     });
-    app.get("/list-pets/:id", async (req, res) => {
+    app.get("/list-pets/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await petsCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
     });
-    app.patch("/list-pets/:id", async (req, res) => {
+    app.patch("/list-pets/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = req.body;
       const result = await petsCollection.updateOne(
@@ -59,7 +92,7 @@ async function run() {
       );
       res.send(result);
     });
-    app.delete("/request/:petid", async (req, res) => {
+    app.delete("/request/:petid", verifyToken, async (req, res) => {
       const { petid } = req.params;
 
       const result = await pestAdaptioncCollection.deleteOne({ petId: petid });
@@ -67,14 +100,14 @@ async function run() {
 
       res.send(result);
     });
-    app.delete("/list-pets/:id", async (req, res) => {
+    app.delete("/list-pets/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
 
       const result = await petsCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
-    app.post("/list-pet", async (req, res) => {
+    app.post("/list-pet", verifyToken, async (req, res) => {
       const petAdapt = req.body;
       const alredyexist = await pestAdaptioncCollection.findOne({
         petId: petAdapt.petId,
@@ -110,8 +143,10 @@ async function run() {
     app.patch("/my-pet-requests/:petId", async (req, res) => {
       const { petId } = req.params;
       const data = req.body;
+      console.log(data);
+
       const result = await pestAdaptioncCollection.updateOne(
-        { petId: petId },
+        { petId: petId, userId: data.userId },
         { $set: { status: data.status } },
       );
       const results = await petsCollection.updateOne(
