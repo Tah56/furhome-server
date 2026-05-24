@@ -146,7 +146,7 @@ async function run() {
       console.log(data);
 
       const result = await pestAdaptioncCollection.updateOne(
-        { petId: petId, userId: data.userId },
+        { petId: petId },
         { $set: { status: data.status } },
       );
       const results = await petsCollection.updateOne(
