@@ -64,7 +64,7 @@ async function run() {
       const result = await petsCollection.find({ userId: userId }).toArray();
       res.send(result);
     });
-    app.get("/all-pets", async (req, res) => {
+    app.get("/all-pets" , async (req, res) => {
       const search = req.query.search || "";
       let query = {};
       if (search) {
@@ -78,6 +78,12 @@ async function run() {
       const result = await petsCollection.find(query).toArray();
       res.send(result);
     });
+
+    app.get("/all-pet", async(req,res)=>{
+      const result =await petsCollection.find().limit(6).toArray()
+      res.send(result)
+    })
+
     app.get("/list-pets/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await petsCollection.findOne({ _id: new ObjectId(id) });
