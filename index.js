@@ -31,11 +31,11 @@ const verifyToken = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({message:"Unathorized"})
   }
-  console.log(header);
+  // console.log(header);
 try {
   
   const {payload} = await jwtVerify(token,JWKS)
-  console.log(payload);
+  // console.log(payload);
   next();
 } catch (error) {
   return res.status(403).json({message:"forbidden"})
@@ -73,7 +73,7 @@ async function run() {
           $options: "i",
         };
       }
-      console.log(search);
+      // console.log(search);
 
       const result = await petsCollection.find(query).toArray();
       res.send(result);
@@ -102,7 +102,7 @@ async function run() {
       const { petid } = req.params;
 
       const result = await pestAdaptioncCollection.deleteOne({ petId: petid });
-      console.log(result);
+      // console.log(result);
 
       res.send(result);
     });
@@ -126,7 +126,7 @@ async function run() {
       }
       const result = await pestAdaptioncCollection.insertOne(petAdapt);
       res.json(result);
-      console.log(result);
+      // console.log(result);
     });
     app.get("/requsts", async (req, res) => {
       const email = req.query.email;
@@ -135,7 +135,7 @@ async function run() {
         .find({ email: email })
         .toArray();
       res.json(result);
-      console.log(result);
+      // console.log(result);
     });
     app.get("/my-pet-requests/:OwnerEmail", async (req, res) => {
       const { OwnerEmail } = req.params;
@@ -144,15 +144,17 @@ async function run() {
         .toArray();
 
       res.json(result);
-      console.log(result);
+      // console.log(result);
     });
     app.patch("/my-pet-requests/:petId", async (req, res) => {
       const { petId } = req.params;
       const data = req.body;
-      console.log(data);
+      // console.log(data);
 
       const result = await pestAdaptioncCollection.updateOne(
-        { petId: petId },
+        { petId: petId, 
+          email:data.email
+        },
         { $set: { status: data.status } },
       );
       const results = await petsCollection.updateOne(
@@ -161,7 +163,7 @@ async function run() {
       );
 
       res.json({ result, results });
-      console.log(result);
+  
     });
 
     // app.patch("/my-pet-requests/:Id",async(req,res)=>{
